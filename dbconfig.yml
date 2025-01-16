@@ -1,0 +1,6 @@
+development:
+  dialect: postgres
+  datasource: host=localhost port=5432 user=hpgbao password=Baolodc2204. dbname=postgres sslmode=disable
+  dir: migrations
+  table: migrations
+
