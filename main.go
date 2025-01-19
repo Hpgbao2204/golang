@@ -3,6 +3,8 @@ package main
 import (
 	"backend-github-trending/db"
 	"backend-github-trending/handler"
+	"backend-github-trending/repository/repo_impl"
+	"backend-github-trending/router"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,10 +22,17 @@ func main() {
 	defer sql.Close()
 
 	e := echo.New()
-	e.GET("/", handler.Welcome)
 
-	e.GET("/users/sign-in", handler.HandleSignIn)
-	e.GET("/users/sign-up", handler.HandleSignUp)
+	userHandler := handler.UserHandler{
+		UserRepo: repo_impl.NewUserRepo(sql),
+	}
+
+	api := router.API{
+		Echo:        e,
+		UserHandler: userHandler,
+	}
+
+	api.SetupRouter()
 
 	e.Logger.Fatal(e.Start(":3000"))
 }

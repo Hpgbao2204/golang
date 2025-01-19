@@ -2,7 +2,7 @@
 CREATE TABLE "users" (
     "user_id" text PRIMARY KEY,
     "full_name" text,
-    "email" text UNIQUE,
+    "email" text,
     "password" text,
     "role" text,
     "created_at" TIMESTAMP NOT NULL,
