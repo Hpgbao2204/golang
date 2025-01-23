@@ -4,8 +4,10 @@ import (
 	"backend-github-trending/banana"
 	"backend-github-trending/db"
 	"backend-github-trending/model"
+	"backend-github-trending/model/req"
 	"backend-github-trending/repository"
 	"context"
+	"database/sql"
 	"github.com/labstack/gommon/log"
 	"github.com/lib/pq"
 	"time"
@@ -38,6 +40,20 @@ func (u UserRepoImpl) SaveUser(context context.Context, user model.User) (model.
 			}
 		}
 		return user, banana.SignUpFail
+	}
+	return user, nil
+}
+
+func (u *UserRepoImpl) CheckLogin(context context.Context, loginReq req.SignIn) (model.User, error) {
+	var user = model.User{}
+	err := u.sql.Db.GetContext(context, &user, "SELECT * FROM users WHERE email=$1", loginReq.Email)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, banana.UserNotFound
+		}
+		log.Error(err.Error())
+		return user, err
 	}
 	return user, nil
 }

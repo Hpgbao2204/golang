@@ -17,13 +17,6 @@ type UserHandler struct {
 	UserRepo repository.UserRepo
 }
 
-func (u *UserHandler) HandleSignIn(c echo.Context) error {
-	return c.JSON(http.StatusOK, echo.Map{
-		"user":  "Gia Bao",
-		"email": "hpgbao@gmail.com",
-	})
-}
-
 func (u *UserHandler) HandleSignUp(c echo.Context) error {
 	req := req.SignUp{}
 
@@ -83,5 +76,53 @@ func (u *UserHandler) HandleSignUp(c echo.Context) error {
 		StatusCode: http.StatusOK,
 		Message:    "Sign up successfully",
 		Data:       user,
+	})
+}
+
+func (u *UserHandler) HandleSignIn(c echo.Context) error {
+	req := req.SignIn{}
+
+	var err error
+
+	if err = c.Bind(&req); err != nil {
+		log.Error(err.Error())
+		return c.JSON(http.StatusBadRequest, model.Respone{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+			Data:       nil,
+		})
+	}
+
+	validate := validator.New()
+	if err = validate.Struct(req); err != nil {
+		return c.JSON(http.StatusBadRequest, model.Respone{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+			Data:       nil,
+		})
+	}
+
+	user, err := u.UserRepo.CheckLogin(c.Request().Context(), req)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, model.Respone{
+			StatusCode: http.StatusUnauthorized,
+			Message:    err.Error(),
+			Data:       nil,
+		})
+	}
+
+	// compare 2 pass
+	isTheSame := security.ComparePasswords(user.Password, []byte(req.Password))
+	if !isTheSame {
+		return c.JSON(http.StatusUnauthorized, model.Respone{
+			StatusCode: http.StatusUnauthorized,
+			Message:    "Dang nhap that bai vi sai mk",
+			Data:       nil,
+		})
+	}
+	return c.JSON(http.StatusOK, model.Respone{
+		StatusCode: http.StatusOK,
+		Message:    "Sign In successfully",
+		Data:       nil,
 	})
 }
